@@ -6,15 +6,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.http.HttpMethod;
-
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,28 +22,29 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
         http
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // =========================
                         // PUBLIC APIs
-                        // =========================
-
                         .requestMatchers(
+                                "/",
                                 "/api/auth/login",
                                 "/api/auth/register"
                         ).permitAll()
 
-                        // Registration page ke liye public data
+                        // Public registration data
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/branches/**",
@@ -56,14 +53,9 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Uploaded files
-                        .requestMatchers("/uploads/**")
-                        .permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
-
-                        // =========================
                         // ADMIN - POST
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/users/**",
@@ -76,11 +68,7 @@ public class SecurityConfig {
                                 "/api/students/**"
                         ).hasRole("ADMIN")
 
-
-                        // =========================
                         // ADMIN - PUT
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/users/**",
@@ -93,11 +81,7 @@ public class SecurityConfig {
                                 "/api/students/**"
                         ).hasRole("ADMIN")
 
-
-                        // =========================
                         // ADMIN - DELETE
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/users/**",
@@ -110,11 +94,7 @@ public class SecurityConfig {
                                 "/api/students/**"
                         ).hasRole("ADMIN")
 
-
-                        // =========================
                         // TEACHER + ADMIN - POST
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/teachers/**",
@@ -126,11 +106,7 @@ public class SecurityConfig {
                                 "/api/events/**"
                         ).hasAnyRole("TEACHER", "ADMIN")
 
-
-                        // =========================
                         // TEACHER + ADMIN - PUT
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/teachers/**",
@@ -142,11 +118,7 @@ public class SecurityConfig {
                                 "/api/events/**"
                         ).hasAnyRole("TEACHER", "ADMIN")
 
-
-                        // =========================
                         // ADMIN - DELETE
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/teachers/**",
@@ -158,11 +130,7 @@ public class SecurityConfig {
                                 "/api/events/**"
                         ).hasRole("ADMIN")
 
-
-                        // =========================
                         // STUDENT PROFILE
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/students/me"
@@ -175,16 +143,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/students/**"
-                        ).hasAnyRole(
-                                "TEACHER",
-                                "ADMIN"
-                        )
+                        ).hasAnyRole("TEACHER", "ADMIN")
 
-
-                        // =========================
                         // GENERAL GET APIs
-                        // =========================
-
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/teachers/**",
@@ -204,11 +165,7 @@ public class SecurityConfig {
                                 "ADMIN"
                         )
 
-
-                        // =========================
-                        // EVERYTHING ELSE
-                        // =========================
-
+                        // All remaining requests require authentication
                         .anyRequest().authenticated()
                 )
 
@@ -220,18 +177,19 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    // =========================
     // CORS CONFIGURATION
-    // =========================
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                List.of(
+                        "http://localhost:5173"
+
+                        // Add deployed frontend URL here later:
+                        // "https://your-frontend.vercel.app"
+                )
         );
 
         configuration.setAllowedMethods(
@@ -244,19 +202,13 @@ public class SecurityConfig {
                 )
         );
 
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
-
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
